@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Cute (minimal) Physics — Class 9: Motion + Force</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbfcff; --card:#ffffff; --accent:#7b68ee; --muted:#6b6b6b; --soft:#f3f3ff;
+}
+*{box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{margin:0;background:linear-gradient(180deg,var(--bg),#f6fbff);color:#222;padding:18px}
+header{display:flex;gap:12px;align-items:center}
+h1{margin:0;color:var(--accent)}
+.small{color:var(--muted);font-size:0.95rem}
+.container{max-width:1150px;margin:0 auto}
+.chapters{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.chapter-card{flex:1 1 300px;background:linear-gradient(180deg,#fff,#fffaf6);border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(120,80,160,0.06);cursor:pointer;transition:transform .14s}
+.chapter-card:hover{transform:translateY(-6px)}
+.formula-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:18px}
+.formula-card{background:var(--card);border-radius:12px;padding:12px;border:1px solid #f0eefc;box-shadow:0 8px 18px rgba(0,0,0,0.04);display:flex;flex-direction:column;gap:8px}
+.formula-top{display:flex;justify-content:space-between;align-items:center}
+.formula-name{font-weight:600;color:#3b2f6a}
+.formula-math{background:var(--soft);padding:6px 8px;border-radius:8px;font-size:0.95rem;color:#2f2f2f}
+.formula-actions{display:flex;gap:8px;flex-wrap:wrap}
+.practice-btn{background:#fff;border:1px solid #eee;padding:8px 10px;border-radius:10px;cursor:pointer}
+.tiny-mascot{font-size:1.2rem;opacity:0.9}
+
+/* popup */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.36);display:none;align-items:center;justify-content:center;z-index:60}
+.popup{width:94%;max-width:980px;background:linear-gradient(180deg,#fff,#fff9f6);border-radius:14px;padding:18px;box-shadow:0 18px 50px rgba(40,20,60,0.18);max-height:92vh;overflow:auto}
+.popup-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.popup h2{margin:0;color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.diff-btn{background:linear-gradient(180deg,#fff,#fff7f0);border:1px solid #efe6ff;padding:8px 12px;border-radius:10px;cursor:pointer}
+.questions-area{margin-top:12px}
+.qcard{background:var(--card);padding:12px;border-radius:12px;border:1px solid #f3ecff;margin-bottom:10px}
+.qcard h3{margin:0 0 8px 0;font-size:1rem}
+.qmeta{font-size:0.95rem;color:var(--muted);margin-bottom:8px}
+.input-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+input.answer{padding:8px;border-radius:8px;border:1px solid #e7e0f7;width:220px}
+button.check{background:linear-gradient(180deg,#e6fbef,#c9f7da);border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+.result{margin-top:8px;font-weight:700}
+.hint{color:#666;font-size:0.9rem;margin-top:6px}
+.progress{background:#fff;border:1px dashed #eee;padding:8px;border-radius:10px;margin-top:10px;font-size:0.92rem}
+
+/* thank you */
+.thanks{display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px}
+.thanks h1{font-size:2rem;color:var(--accent);margin-bottom:8px}
+@media (max-width:700px){ .formula-grid{grid-template-columns:1fr} .input-row{flex-direction:column;align-items:flex-start} input.answer{width:100%} }
+code{background:#f7f7ff;padding:3px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div style="font-size:2rem">🔬</div>
+  <div>
+    <h1>Physics Practice — Class 9 (Motion + Force)</h1>
+    <div class="small"> Click a chapter → pick a formula → difficulty → solve word problems. Type answers with units, e.g. <code>10 N</code>.</div>
+  </div>
+</header>
+
+<section class="chapters">
+  <div class="chapter-card" onclick="showChapter('Motion')">
+    <h3 style="margin:0">Motion</h3>
+    <div class="small">7 formulas • 210 word problems</div>
+  </div>
+  <div class="chapter-card" onclick="showChapter('Force and Laws of Motion')">
+    <h3 style="margin:0">Force &amp; Laws of Motion</h3>
+    <div class="small">5 formulas • 150 word problems</div>
+  </div>
+</section>
+
+<section id="chapterArea" style="margin-top:18px"></section>
+
+<div id="overallProgress" class="progress small" style="display:none"></div>
+
+<!-- popup -->
+<div id="overlay" class="overlay">
+  <div class="popup" role="dialog" aria-modal="true">
+    <div class="popup-top">
+      <div>
+        <h2 id="popupTitle"></h2>
+        <div class="small" id="popupSubtitle"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="closePopup()" style="background:#fff;border:1px solid #eee;padding:6px 10px;border-radius:8px;cursor:pointer">Close ✖</button>
+      </div>
+    </div>
+
+    <div style="margin-top:10px">
+      <div class="row">
+        <button class="diff-btn" onclick="startDifficulty('easy')">🐣 Easy</button>
+        <button class="diff-btn" onclick="startDifficulty('medium')">🐤 Medium</button>
+        <button class="diff-btn" onclick="startDifficulty('hard')">🐥 Hard</button>
+      </div>
+      <div id="status" class="small" style="margin-top:8px"></div>
+    </div>
+
+    <div id="questionsArea" class="questions-area"></div>
+  </div>
+</div>
+
+<!-- thank you -->
+<div id="thanksScreen" class="thanks">
+  <div style="font-size:2.2rem">🎉🎈</div>
+  <h1>THANK YOU!</h1>
+  <p class="small">You completed everything — Motion + Force. Nice work. You're a physics boss.</p>
+</div>
+
+<footer style="margin-top:24px" class="small">Made for Ish — units accepted in common variations (e.g., <code>m/s</code>, <code>m s^-1</code>, <code>kg·m/s</code>).</footer>
+</div>
+
+<script>
+/* ---------- DATA: Motion + Force ---------- */
+/* Each formula has easy/medium/hard arrays of 10 real word problems with answer.value and answer.unit */
+const data = {
+  "Motion": {
+    "Average Speed = Total Distance ÷ Total Time": {
+      easy: [
+        {q:"A car travels 120 km in 3 hours. Find average speed.", answer:{value:40,unit:"km/h"}},
+        {q:"A cyclist covers 30 km in 2 hours. What is average speed?", answer:{value:15,unit:"km/h"}},
+        {q:"Runner finishes 10 km in 50 minutes. Find average speed (km/h).", answer:{value:12,unit:"km/h"}},
+        {q:"Student walks 3 km in 30 minutes. Find average speed (km/h).", answer:{value:6,unit:"km/h"}},
+        {q:"Taxi travels 9 km in 18 minutes. Average speed (km/h)?", answer:{value:30,unit:"km/h"}},
+        {q:"Train covers 400 km in 5 hours. Average speed?", answer:{value:80,unit:"km/h"}},
+        {q:"Truck covers 150 km in 2.5 hours. Average speed?", answer:{value:60,unit:"km/h"}},
+        {q:"Car covers 90 km in 1.5 hours. Average speed?", answer:{value:60,unit:"km/h"}},
+        {q:"Bus covers 48 km in 1.2 hours. Average speed?", answer:{value:40,unit:"km/h"}},
+        {q:"Boat goes 20 km in 40 minutes. Average speed (km/h)?", answer:{value:30,unit:"km/h"}}
+      ],
+      medium: [
+        {q:"Car goes 60 km at 60 km/h and 40 km at 40 km/h. Find average speed (km/h).", answer:{value:48,unit:"km/h"}},
+        {q:"Coach covers 300 km in 3.5 hours. Convert avg speed to m/s (round 2 dec).", answer:{value:23.81,unit:"m/s"}},
+        {q:"Runner completes 21 km in 1 h 30 min. Find avg speed (km/h).", answer:{value:14,unit:"km/h"}},
+        {q:"Bike covers 30 km in 0.5 h and 60 km in 2 h. Find avg speed.", answer:{value:36,unit:"km/h"}},
+        {q:"Trips: 10 km in 20 min and 15 km in 30 min. Find avg speed (km/h).", answer:{value:30,unit:"km/h"}},
+        {q:"Vehicle covers 250 km in 4 h 10 min. Avg speed (km/h).", answer:{value:60,unit:"km/h"}},
+        {q:"Cyclist covers 1000 m in 80 s. Avg speed (m/s)?", answer:{value:12.5,unit:"m/s"}},
+        {q:"Person walks 3.5 km in 45 min. Avg speed (km/h).", answer:{value:4.67,unit:"km/h"}},
+        {q:"Courier covers 120 km in 2 h 15 min. Avg speed (km/h).", answer:{value:53.33,unit:"km/h"}},
+        {q:"Boat goes 15 km in 30 min then 5 km in 20 min. Avg speed (km/h)?", answer:{value:24,unit:"km/h"}}
+      ],
+      hard: [
+        {q:"Car A:60 km at 60 km/h; Car B:60 km at 30 km/h. Combined avg speed (km/h)?", answer:{value:40,unit:"km/h"}},
+        {q:"Train goes 90 km, waits 30 min, then 60 km in 1 h. Avg speed excluding wait (km/h)?", answer:{value:50,unit:"km/h"}},
+        {q:"Cyclist 3 laps of 2 km with lap times 5,6,7 min. Avg speed (m/s)?", answer:{value:5.71,unit:"m/s"}},
+        {q:"Car covers 100 km at 50 km/h then 100 km at 80 km/h. Avg speed (km/h)?", answer:{value:62.35,unit:"km/h"}},
+        {q:"Journey 360 km: first half at 60 km/h, second half at 90 km/h. Avg speed?", answer:{value:72,unit:"km/h"}},
+        {q:"Vehicle:10 km@40,20 km@60,30 km@80. Avg speed overall (km/h)?", answer:{value:65.45,unit:"km/h"}},
+        {q:"Driver:100 km@50 km/h, 50 km@25 km/h. Avg speed (km/h)?", answer:{value:41.67,unit:"km/h"}},
+        {q:"Boat:12 km upstream 3 h; downstream 12 km in 2 h. Avg speed round trip (km/h)?", answer:{value:4.8,unit:"km/h"}},
+        {q:"Bus route 180 km, avg 45 km/h. Time taken (h)?", answer:{value:4,unit:"h"}},
+        {q:"Runner 42.195 km in 2 h 30 min. Avg speed (m/s)?", answer:{value:4.69,unit:"m/s"}}
+      ]
+    },
+    "Speed = Distance ÷ Time": {
+      easy:[
+        {q:"Runner covers 200 m in 20 s. Speed (m/s)?", answer:{value:10,unit:"m/s"}},
+        {q:"Car travels 90 km in 1.5 h. Speed (km/h)?", answer:{value:60,unit:"km/h"}},
+        {q:"Bike goes 15 km in 0.5 h. Speed (km/h)?", answer:{value:30,unit:"km/h"}},
+        {q:"Train covers 600 m in 30 s. Speed (m/s)?", answer:{value:20,unit:"m/s"}},
+        {q:"Walk 2 km in 30 min. Speed (km/h)?", answer:{value:4,unit:"km/h"}},
+        {q:"Runner 400 m in 50 s. Speed (m/s)?", answer:{value:8,unit:"m/s"}},
+        {q:"Car 120 km in 2 h. Speed (km/h)?", answer:{value:60,unit:"km/h"}},
+        {q:"Horse runs 300 m in 30 s. Speed (m/s)?", answer:{value:10,unit:"m/s"}},
+        {q:"Motorbike 80 km in 2 h. Speed (km/h)?", answer:{value:40,unit:"km/h"}},
+        {q:"Boat moves 1 km in 100 s. Speed (m/s)?", answer:{value:10,unit:"m/s"}}
+      ],
+      medium:[
+        {q:"Convert 72 km/h to m/s.", answer:{value:20,unit:"m/s"}},
+        {q:"Car moves 3.6 km in 120 s. Speed (m/s)?", answer:{value:30,unit:"m/s"}},
+        {q:"If speed 9 m/s, time to cover 450 m (s)?", answer:{value:50,unit:"s"}},
+        {q:"Cyclist 15 km/h → m/s (2 dec)?", answer:{value:4.17,unit:"m/s"}},
+        {q:"18 km at 36 km/h. Time (h)?", answer:{value:0.5,unit:"h"}},
+        {q:"54 km/h, time for 27 km (min)?", answer:{value:30,unit:"min"}},
+        {q:"Convert 5 m/s to km/h.", answer:{value:18,unit:"km/h"}},
+        {q:"2 km in 1.5 min. Speed (m/s)?", answer:{value:22.22,unit:"m/s"}},
+        {q:"Stone 30 m in 6 s. Speed (m/s)?", answer:{value:5,unit:"m/s"}},
+        {q:"15 km in 0.25 h. Speed (km/h)?", answer:{value:60,unit:"km/h"}}
+      ],
+      hard:[
+        {q:"Plane covers 900 km in 1.5 h. Speed (m/s)?", answer:{value:166.67,unit:"m/s"}},
+        {q:"Usain Bolt 100 m in 9.58 s. Speed (m/s)?", answer:{value:10.44,unit:"m/s"}},
+        {q:"If speed doubles, time for 100 m from 20 s becomes?", answer:{value:10,unit:"s"}},
+        {q:"Average 30 m/s for 2 min. Distance (km)?", answer:{value:3.6,unit:"km"}},
+        {q:"Convert 540 km/h to m/s.", answer:{value:150,unit:"m/s"}},
+        {q:"Satellite 7.8 km/s → km/h?", answer:{value:28080,unit:"km/h"}},
+        {q:"1000 m in 2.5 min. Speed (m/s)?", answer:{value:6.67,unit:"m/s"}},
+        {q:"Speed 5 m/s for 2 h. Distance (km)?", answer:{value:36,unit:"km"}},
+        {q:"Swimmer 1500 m in 20 min. Speed (m/s)?", answer:{value:1.25,unit:"m/s"}},
+        {q:"360 km in 4.5 h. Speed (km/h)?", answer:{value:80,unit:"km/h"}}
+      ]
+    },
+    "Average Velocity = (Initial Velocity + Final Velocity) ÷ 2": {
+      easy:[
+        {q:"Car u=2 m/s, v=6 m/s. Avg velocity?", answer:{value:4,unit:"m/s"}},
+        {q:"u=0, v=10 m/s. Avg velocity?", answer:{value:5,unit:"m/s"}},
+        {q:"u=5, v=7 m/s. Avg velocity?", answer:{value:6,unit:"m/s"}},
+        {q:"u=-2, v=2 m/s. Avg velocity?", answer:{value:0,unit:"m/s"}},
+        {q:"u=4, v=8 m/s. Avg velocity?", answer:{value:6,unit:"m/s"}},
+        {q:"u=3, v=9 m/s. Avg velocity?", answer:{value:6,unit:"m/s"}},
+        {q:"u=1, v=5 m/s. Avg velocity?", answer:{value:3,unit:"m/s"}},
+        {q:"u=0, v=4 m/s. Avg velocity?", answer:{value:2,unit:"m/s"}},
+        {q:"u=-4, v=4 m/s. Avg velocity?", answer:{value:0,unit:"m/s"}},
+        {q:"u=6, v=10 m/s. Avg velocity?", answer:{value:8,unit:"m/s"}}
+      ],
+      medium:[
+        {q:"u=5 m/s, reaches v=13 m/s after 4 s. Avg velocity?", answer:{value:9,unit:"m/s"}},
+        {q:"If u=2 m/s and avg velocity is 6 m/s, find v.", answer:{value:10,unit:"m/s"}},
+        {q:"u=-3 m/s, v=9 m/s. Avg velocity?", answer:{value:3,unit:"m/s"}},
+        {q:"0→20 m/s constant accel. Avg velocity?", answer:{value:10,unit:"m/s"}},
+        {q:"u=10, v=30 m/s. Avg velocity?", answer:{value:20,unit:"m/s"}},
+        {q:"u=7, v=13 m/s. Avg velocity?", answer:{value:10,unit:"m/s"}},
+        {q:"u=12, v=18 m/s. Avg velocity?", answer:{value:15,unit:"m/s"}},
+        {q:"u=0, v=50 m/s. Avg velocity?", answer:{value:25,unit:"m/s"}},
+        {q:"u=-5, v=5 m/s. Avg velocity?", answer:{value:0,unit:"m/s"}},
+        {q:"u=20, v=40 m/s. Avg velocity?", answer:{value:30,unit:"m/s"}}
+      ],
+      hard:[
+        {q:"Car 10→50 m/s in 8 s. Avg velocity?", answer:{value:30,unit:"m/s"}},
+        {q:"Particle -10→10 m/s. Avg velocity?", answer:{value:0,unit:"m/s"}},
+        {q:"u=4 a=2 t=6. Find avg velocity (use v=u+at).", answer:{value:13,unit:"m/s"}},
+        {q:"u=5, v=25. Avg velocity?", answer:{value:15,unit:"m/s"}},
+        {q:"u=3, v=21. Avg velocity?", answer:{value:12,unit:"m/s"}},
+        {q:"u=2 a=4 t=5. Avg velocity?", answer:{value:12,unit:"m/s"}},
+        {q:"u=0 a=6 t=4. Avg velocity?", answer:{value:12,unit:"m/s"}},
+        {q:"u=8 v=-2. Avg velocity?", answer:{value:3,unit:"m/s"}},
+        {q:"u=15 v=5. Avg velocity?", answer:{value:10,unit:"m/s"}},
+        {q:"u=1 v=19. Avg velocity?", answer:{value:10,unit:"m/s"}}
+      ]
+    },
+    "Acceleration = (Final Velocity − Initial Velocity) ÷ Time": {
+      easy:[
+        {q:"Car 0→10 m/s in 2 s. Acceleration?", answer:{value:5,unit:"m/s^2"}},
+        {q:"Bike 5→15 m/s in 5 s. Acceleration?", answer:{value:2,unit:"m/s^2"}},
+        {q:"Car 10→0 m/s in 2 s. Acceleration?", answer:{value:-5,unit:"m/s^2"}},
+        {q:"u=2, v=8 in 3 s. Acceleration?", answer:{value:2,unit:"m/s^2"}},
+        {q:"0→20 m/s in 4 s. Acceleration?", answer:{value:5,unit:"m/s^2"}},
+        {q:"3→9 m/s in 3 s. Acceleration?", answer:{value:2,unit:"m/s^2"}},
+        {q:"6→0 m/s in 3 s. Acceleration?", answer:{value:-2,unit:"m/s^2"}},
+        {q:"1→7 m/s in 2 s. Acceleration?", answer:{value:3,unit:"m/s^2"}},
+        {q:"4→14 m/s in 5 s. Acceleration?", answer:{value:2,unit:"m/s^2"}},
+        {q:"8→20 m/s in 6 s. Acceleration?", answer:{value:2,unit:"m/s^2"}}
+      ],
+      medium:[
+        {q:"30→0 m/s in 6 s. Acceleration?", answer:{value:-5,unit:"m/s^2"}},
+        {q:"25→5 m/s in 4 s. Acceleration?", answer:{value:-5,unit:"m/s^2"}},
+        {q:"u=2 v=20 t=3. Acceleration?", answer:{value:6,unit:"m/s^2"}},
+        {q:"u=-5 v=5 t=2. Acceleration?", answer:{value:5,unit:"m/s^2"}},
+        {q:"0→60 m/s in 10 s. Acceleration?", answer:{value:6,unit:"m/s^2"}},
+        {q:"12→0 m/s in 3 s. Acceleration?", answer:{value:-4,unit:"m/s^2"}},
+        {q:"0→30 m/s in 5 s. Acceleration?", answer:{value:6,unit:"m/s^2"}},
+        {q:"u=7 v=28 t=7. Acceleration?", answer:{value:3,unit:"m/s^2"}},
+        {q:"u=1 v=31 t=5. Acceleration?", answer:{value:6,unit:"m/s^2"}},
+        {q:"40→20 m/s in 4 s. Acceleration?", answer:{value:-5,unit:"m/s^2"}}
+      ],
+      hard:[
+        {q:"20→80 km/h in 10 s. Accel (m/s²)?", answer:{value:1.67,unit:"m/s^2"}},
+        {q:"-15→25 m/s in 8 s. Acceleration?", answer:{value:5,unit:"m/s^2"}},
+        {q:"54→90 km/h in 20 s. Accel (m/s²)?", answer:{value:0.5,unit:"m/s^2"}},
+        {q:"u=10 v=-10 t=4. Acceleration?", answer:{value:-5,unit:"m/s^2"}},
+        {q:"0→108 km/h in 10 s. Acceleration (m/s²)?", answer:{value:3,unit:"m/s^2"}},
+        {q:"5→65 m/s in 8 s. Acceleration?", answer:{value:7.5,unit:"m/s^2"}},
+        {q:"-20→20 m/s in 10 s. Acceleration?", answer:{value:4,unit:"m/s^2"}},
+        {q:"100→500 m/s in 25 s. Acceleration?", answer:{value:16,unit:"m/s^2"}},
+        {q:"72→0 km/h in 6 s. Deceleration (m/s²)?", answer:{value:-3.33,unit:"m/s^2"}},
+        {q:"v=u+at: u=3 v=63 t=10. Find a.", answer:{value:6,unit:"m/s^2"}}
+      ]
+    },
+    "v = u + at": {
+      easy:[
+        {q:"Car from rest accelerates 2 m/s² for 5 s. Final velocity?", answer:{value:10,unit:"m/s"}},
+        {q:"Bike u=5 a=3 t=4. Final v?", answer:{value:17,unit:"m/s"}},
+        {q:"Vehicle u=10 a=-2 t=3. Final v?", answer:{value:4,unit:"m/s"}},
+        {q:"Scooter u=2 a=4 t=2. Final v?", answer:{value:10,unit:"m/s"}},
+        {q:"If u=7 a=1 t=6. v?", answer:{value:13,unit:"m/s"}},
+        {q:"Sprinter u=0 a=5 t=2. v?", answer:{value:10,unit:"m/s"}},
+        {q:"u=3 a=0 t=10. v?", answer:{value:3,unit:"m/s"}},
+        {q:"u=4 a=2 t=3. v?", answer:{value:10,unit:"m/s"}},
+        {q:"u=6 a=-1 t=4. v?", answer:{value:2,unit:"m/s"}},
+        {q:"u=1 a=2 t=9. v?", answer:{value:19,unit:"m/s"}}
+      ],
+      medium:[
+        {q:"u=5 a=2.5 t=8. v?", answer:{value:25,unit:"m/s"}},
+        {q:"u=0 a=9.8 t=3. v?", answer:{value:29.4,unit:"m/s"}},
+        {q:"u=10 a=-3 t=5. v?", answer:{value:-5,unit:"m/s"}},
+        {q:"u=15 a=1 t=20. v?", answer:{value:35,unit:"m/s"}},
+        {q:"u=12 a=2 t=6. v?", answer:{value:24,unit:"m/s"}},
+        {q:"u=4 a=4 t=4. v?", answer:{value:20,unit:"m/s"}},
+        {q:"u=2 a=3 t=7. v?", answer:{value:23,unit:"m/s"}},
+        {q:"u=30 a=-2 t=10. v?", answer:{value:10,unit:"m/s"}},
+        {q:"u=0 a=1.5 t=30. v?", answer:{value:45,unit:"m/s"}},
+        {q:"u=9 a=0.5 t=8. v?", answer:{value:13,unit:"m/s"}}
+      ],
+      hard:[
+        {q:"u=20 km/h → convert to m/s; a=2 m/s² t=5. Final v (m/s)?", answer:{value:15.56,unit:"m/s"}},
+        {q:"u=50 m/s a=-3 t=12. Find v.", answer:{value:14,unit:"m/s"}},
+        {q:"u=5 a=9.8 t=4. v?", answer:{value:44.2,unit:"m/s"}},
+        {q:"u=0 a=2.5 t=14. v?", answer:{value:35,unit:"m/s"}},
+        {q:"u=-10 a=5 t=5. v?", answer:{value:15,unit:"m/s"}},
+        {q:"u=40 a=-4 t=6. v?", answer:{value:16,unit:"m/s"}},
+        {q:"u=3 a=0.8 t=25. v?", answer:{value:23,unit:"m/s"}},
+        {q:"u=18 a=1.2 t=10. v?", answer:{value:30,unit:"m/s"}},
+        {q:"u=0 a=9.8 t=9. v?", answer:{value:88.2,unit:"m/s"}},
+        {q:"u=12 a=-0.5 t=10. v?", answer:{value:7,unit:"m/s"}}
+      ]
+    },
+    "s = ut + 1/2 a t^2": {
+      easy:[
+        {q:"Car from rest (u=0) a=2 t=4. Distance s?", answer:{value:16,unit:"m"}},
+        {q:"Runner t=10 s u=5 constant. Distance?", answer:{value:50,unit:"m"}},
+        {q:"u=2 a=1 t=5. s?", answer:{value:22.5,unit:"m"}},
+        {q:"From rest a=9.8 t=2. s?", answer:{value:19.6,unit:"m"}},
+        {q:"u=3 a=2 t=3. s?", answer:{value:18,unit:"m"}},
+        {q:"u=4 a=0 t=6. s?", answer:{value:24,unit:"m"}},
+        {q:"u=1 a=1 t=4. s?", answer:{value:9,unit:"m"}},
+        {q:"u=5 a=-1 t=3. s?", answer:{value:9.5,unit:"m"}},
+        {q:"u=0 a=3 t=5. s?", answer:{value:37.5,unit:"m"}},
+        {q:"u=2 a=0.5 t=8. s?", answer:{value:40,unit:"m"}}
+      ],
+      medium:[
+        {q:"u=10 a=2 t=6. s?", answer:{value:102,unit:"m"}},
+        {q:"u=5 a=-1 t=4. s?", answer:{value:2,unit:"m"}},
+        {q:"u=0 a=3 t=10. s?", answer:{value:150,unit:"m"}},
+        {q:"u=12 a=1.5 t=5. s?", answer:{value:56.25,unit:"m"}},
+        {q:"u=8 a=0.5 t=10. s?", answer:{value:130,unit:"m"}},
+        {q:"u=3 a=2 t=7. s?", answer:{value:80.5,unit:"m"}},
+        {q:"u=20 a=-4 t=3. s?", answer:{value:42,unit:"m"}},
+        {q:"u=0 a=9.8 t=5. s?", answer:{value:122.5,unit:"m"}},
+        {q:"u=4 a=1 t=12. s?", answer:{value:112,unit:"m"}},
+        {q:"u=6 a=-0.5 t=8. s?", answer:{value:20,unit:"m"}}
+      ],
+      hard:[
+        {q:"u=15 a=3 t=12. s?", answer:{value:414,unit:"m"}},
+        {q:"u=0 a=9.8 t=20. s?", answer:{value:1960,unit:"m"}},
+        {q:"u=30 a=-2 t=10. s?", answer:{value:200,unit:"m"}},
+        {q:"u=5 a=4 t=15. s?", answer:{value:575,unit:"m"}},
+        {q:"u=10 a=-1 t=12. s?", answer:{value:-14,unit:"m"}},
+        {q:"u=2 a=0.2 t=40. s?", answer:{value:560,unit:"m"}},
+        {q:"u=50 a=-3 t=8. s?", answer:{value:296,unit:"m"}},
+        {q:"u=0 a=7 t=9. s?", answer:{value:283.5,unit:"m"}},
+        {q:"u=12 a=2 t=18. s?", answer:{value:612,unit:"m"}},
+        {q:"u=1 a=1 t=25. s?", answer:{value:351,unit:"m"}}
+      ]
+    },
+    "v^2 = u^2 + 2as": {
+      easy:[
+        {q:"u=0 a=2 s=10. v (m/s)?", answer:{value:20,unit:"m/s"}},
+        {q:"u=5 a=3 s=4. v (m/s)?", answer:{value:11,unit:"m/s"}},
+        {q:"u=2 a=1 s=9. v (m/s)?", answer:{value:6.32,unit:"m/s"}},
+        {q:"u=0 a=9 s=2 m. v?", answer:{value:6,unit:"m/s"}},
+        {q:"u=3 a=2 s=8. v?", answer:{value:7,unit:"m/s"}},
+        {q:"u=4 a=1 s=9. v?", answer:{value:7,unit:"m/s"}},
+        {q:"u=6 a=0 s=5. v?", answer:{value:6,unit:"m/s"}},
+        {q:"u=1 a=2 s=12. v?", answer:{value:7,unit:"m/s"}},
+        {q:"u=0 a=4 s=9. v?", answer:{value:12,unit:"m/s"}},
+        {q:"u=2 a=3 s=7. v?", answer:{value:8,unit:"m/s"}}
+      ],
+      medium:[
+        {q:"u=10 a=2 s=50. v?", answer:{value:30,unit:"m/s"}},
+        {q:"u=5 a=4 s=20. v?", answer:{value:15,unit:"m/s"}},
+        {q:"u=8 a=-1 s=12. v?", answer:{value:6,unit:"m/s"}},
+        {q:"u=12 a=3 s=16. v?", answer:{value:30,unit:"m/s"}},
+        {q:"u=0 a=1.5 s=20. v?", answer:{value:7.75,unit:"m/s"}},
+        {q:"u=7 a=2 s=18. v?", answer:{value:19,unit:"m/s"}},
+        {q:"u=20 a=-4 s=25. v?", answer:{value:0,unit:"m/s"}},
+        {q:"u=4 a=2 s=36. v?", answer:{value:16,unit:"m/s"}},
+        {q:"u=3 a=0.5 s=48. v?", answer:{value:9,unit:"m/s"}},
+        {q:"u=0 a=9.8 s=45. v?", answer:{value:29.7,unit:"m/s"}}
+      ],
+      hard:[
+        {q:"u=30 a=-3 s=100. v?", answer:{value:0,unit:"m/s"}},
+        {q:"u=14 a=2.5 s=36. v?", answer:{value:32,unit:"m/s"}},
+        {q:"u=10 a=4 s=80. v?", answer:{value:38.42,unit:"m/s"}},
+        {q:"u=5 a=9.8 s=200. v?", answer:{value:62.61,unit:"m/s"}},
+        {q:"u=2 a=3 s=150. v?", answer:{value:30.83,unit:"m/s"}},
+        {q:"u=0 a=1 s=500. v?", answer:{value:31.62,unit:"m/s"}},
+        {q:"u=18 a=-2 s=81. v?", answer:{value:0,unit:"m/s"}},
+        {q:"u=8 a=1.25 s=120. v?", answer:{value:24.08,unit:"m/s"}},
+        {q:"u=12 a=0.8 s=200. v?", answer:{value:18.33,unit:"m/s"}},
+        {q:"u=6 a=4 s=256. v?", answer:{value:34,unit:"m/s"}}
+      ]
+    }
+  },
+  "Force and Laws of Motion": {
+    "Final Momentum = Mass × Final Velocity (p = m v)": {
+      easy:[
+        {q:"A ball of mass 2 kg moves at 5 m/s. Find its momentum.", answer:{value:10,unit:"kg·m/s"}},
+        {q:"A 0.5 kg object moves at 4 m/s. Momentum?", answer:{value:2,unit:"kg·m/s"}},
+        {q:"A 3 kg toy moves at 2 m/s. Momentum?", answer:{value:6,unit:"kg·m/s"}},
+        {q:"A 4 kg box at rest (0 m/s). Momentum?", answer:{value:0,unit:"kg·m/s"}},
+        {q:"A 1.5 kg ball at 6 m/s. Momentum?", answer:{value:9,unit:"kg·m/s"}},
+        {q:"A 10 kg cart at 3 m/s. Momentum?", answer:{value:30,unit:"kg·m/s"}},
+        {q:"A 0.2 kg ball at 50 m/s. Momentum?", answer:{value:10,unit:"kg·m/s"}},
+        {q:"A 5 kg mass at 2 m/s. Momentum?", answer:{value:10,unit:"kg·m/s"}},
+        {q:"A 7 kg mass at 0.5 m/s. Momentum?", answer:{value:3.5,unit:"kg·m/s"}},
+        {q:"A 0.75 kg object at 8 m/s. Momentum?", answer:{value:6,unit:"kg·m/s"}}
+      ],
+      medium:[
+        {q:"A 12 kg mass moves at 3.5 m/s. Momentum?", answer:{value:42,unit:"kg·m/s"}},
+        {q:"A 0.05 kg pellet at 400 m/s. Momentum?", answer:{value:20,unit:"kg·m/s"}},
+        {q:"A 6 kg mass at 7 m/s. Momentum?", answer:{value:42,unit:"kg·m/s"}},
+        {q:"2.5 kg mass at -4 m/s. Momentum?", answer:{value:-10,unit:"kg·m/s"}},
+        {q:"0.02 kg mass at 600 m/s. Momentum?", answer:{value:12,unit:"kg·m/s"}},
+        {q:"80 kg person runs at 1.25 m/s. Momentum?", answer:{value:100,unit:"kg·m/s"}},
+        {q:"3.2 kg mass at 2.5 m/s. Momentum?", answer:{value:8,unit:"kg·m/s"}},
+        {q:"15 kg mass at 0.4 m/s. Momentum?", answer:{value:6,unit:"kg·m/s"}},
+        {q:"0.1 kg ball at 30 m/s. Momentum?", answer:{value:3,unit:"kg·m/s"}},
+        {q:"9 kg mass at 2 m/s. Momentum?", answer:{value:18,unit:"kg·m/s"}}
+      ],
+      hard:[
+        {q:"A cricket ball 0.045 kg at 40 m/s. Momentum?", answer:{value:1.8,unit:"kg·m/s"}},
+        {q:"A car 1200 kg at 20 m/s. Momentum?", answer:{value:24000,unit:"kg·m/s"}},
+        {q:"Rocket stage 500 kg at 150 m/s. Momentum?", answer:{value:75000,unit:"kg·m/s"}},
+        {q:"Boulder 2500 kg at 0.5 m/s. Momentum?", answer:{value:1250,unit:"kg·m/s"}},
+        {q:"Skater 60 kg at 10 m/s. Momentum?", answer:{value:600,unit:"kg·m/s"}},
+        {q:"Bullet 0.01 kg at 800 m/s. Momentum?", answer:{value:8,unit:"kg·m/s"}},
+        {q:"Train car 20000 kg at 2 m/s. Momentum?", answer:{value:40000,unit:"kg·m/s"}},
+        {q:"Mass 2.2 kg at -9 m/s. Momentum?", answer:{value:-19.8,unit:"kg·m/s"}},
+        {q:"Mass 0.3 kg at 40 m/s. Momentum?", answer:{value:12,unit:"kg·m/s"}},
+        {q:"Mass 75 kg at 3.2 m/s. Momentum?", answer:{value:240,unit:"kg·m/s"}}
+      ]
+    },
+    "Initial Momentum = Mass × Initial Velocity (p = m u)": {
+      easy:[
+        {q:"Mass 2 kg initial u 3 m/s. Initial momentum?", answer:{value:6,unit:"kg·m/s"}},
+        {q:"Mass 1 kg u 5 m/s. Momentum?", answer:{value:5,unit:"kg·m/s"}},
+        {q:"0.5 kg u 4 m/s. Momentum?", answer:{value:2,unit:"kg·m/s"}},
+        {q:"3 kg u 0 m/s. Momentum?", answer:{value:0,unit:"kg·m/s"}},
+        {q:"4 kg u -2 m/s. Momentum?", answer:{value:-8,unit:"kg·m/s"}},
+        {q:"7 kg u 1 m/s. Momentum?", answer:{value:7,unit:"kg·m/s"}},
+        {q:"0.25 kg u 8 m/s. Momentum?", answer:{value:2,unit:"kg·m/s"}},
+        {q:"10 kg u 0.6 m/s. Momentum?", answer:{value:6,unit:"kg·m/s"}},
+        {q:"6 kg u 2 m/s. Momentum?", answer:{value:12,unit:"kg·m/s"}},
+        {q:"0.2 kg u 15 m/s. Momentum?", answer:{value:3,unit:"kg·m/s"}}
+      ],
+      medium:[
+        {q:"12 kg u 2.5 m/s. Momentum?", answer:{value:30,unit:"kg·m/s"}},
+        {q:"0.03 kg u 300 m/s. Momentum?", answer:{value:9,unit:"kg·m/s"}},
+        {q:"5 kg u -4 m/s. Momentum?", answer:{value:-20,unit:"kg·m/s"}},
+        {q:"20 kg u 0.8 m/s. Momentum?", answer:{value:16,unit:"kg·m/s"}},
+        {q:"0.04 kg u 250 m/s. Momentum?", answer:{value:10,unit:"kg·m/s"}},
+        {q:"9 kg u 3 m/s. Momentum?", answer:{value:27,unit:"kg·m/s"}},
+        {q:"0.5 kg u 6 m/s. Momentum?", answer:{value:3,unit:"kg·m/s"}},
+        {q:"8 kg u 2.2 m/s. Momentum?", answer:{value:17.6,unit:"kg·m/s"}},
+        {q:"3 kg u -3.5 m/s. Momentum?", answer:{value:-10.5,unit:"kg·m/s"}},
+        {q:"0.12 kg u 50 m/s. Momentum?", answer:{value:6,unit:"kg·m/s"}}
+      ],
+      hard:[
+        {q:"Car 1000 kg u 5 m/s. Initial momentum?", answer:{value:5000,unit:"kg·m/s"}},
+        {q:"Bullet 0.02 kg u 600 m/s. Momentum?", answer:{value:12,unit:"kg·m/s"}},
+        {q:"Rocket 300 kg u 120 m/s. Momentum?", answer:{value:36000,unit:"kg·m/s"}},
+        {q:"Skate 45 kg u 2.5 m/s. Momentum?", answer:{value:112.5,unit:"kg·m/s"}},
+        {q:"250 kg u -3 m/s. Momentum?", answer:{value:-750,unit:"kg·m/s"}},
+        {q:"0.07 kg u 300 m/s. Momentum?", answer:{value:21,unit:"kg·m/s"}},
+        {q:"600 kg u 2.3 m/s. Momentum?", answer:{value:1380,unit:"kg·m/s"}},
+        {q:"4.5 kg u 9 m/s. Momentum?", answer:{value:40.5,unit:"kg·m/s"}},
+        {q:"0.9 kg u 8 m/s. Momentum?", answer:{value:7.2,unit:"kg·m/s"}},
+        {q:"18 kg u 10 m/s. Momentum?", answer:{value:180,unit:"kg·m/s"}}
+      ]
+    },
+    "Force = Mass × Acceleration (F = m a)": {
+      easy:[
+        {q:"A 5 kg mass accelerates at 2 m/s². Find force.", answer:{value:10,unit:"N"}},
+        {q:"A 2 kg object accel 3 m/s². Force?", answer:{value:6,unit:"N"}},
+        {q:"Mass 4 kg accel 0 m/s². Force?", answer:{value:0,unit:"N"}},
+        {q:"0.5 kg accel 4 m/s². Force?", answer:{value:2,unit:"N"}},
+        {q:"10 kg accel 1 m/s². Force?", answer:{value:10,unit:"N"}},
+        {q:"3 kg accel -2 m/s². Force?", answer:{value:-6,unit:"N"}},
+        {q:"6 kg accel 5 m/s². Force?", answer:{value:30,unit:"N"}},
+        {q:"0.2 kg accel 9.8 m/s². Force?", answer:{value:1.96,unit:"N"}},
+        {q:"7 kg accel 0.5 m/s². Force?", answer:{value:3.5,unit:"N"}},
+        {q:"8 kg accel 2.5 m/s². Force?", answer:{value:20,unit:"N"}}
+      ],
+      medium:[
+        {q:"12 kg accel 1.2 m/s². Force?", answer:{value:14.4,unit:"N"}},
+        {q:"0.05 kg accel 200 m/s². Force?", answer:{value:10,unit:"N"}},
+        {q:"45 kg accel 0.5 m/s². Force?", answer:{value:22.5,unit:"N"}},
+        {q:"0.02 kg accel 500 m/s². Force?", answer:{value:10,unit:"N"}},
+        {q:"30 kg accel -0.3 m/s². Force?", answer:{value:-9,unit:"N"}},
+        {q:"5 kg accel 3.6 m/s². Force?", answer:{value:18,unit:"N"}},
+        {q:"20 kg accel 0.75 m/s². Force?", answer:{value:15,unit:"N"}},
+        {q:"2.5 kg accel 4.4 m/s². Force?", answer:{value:11,unit:"N"}},
+        {q:"0.12 kg accel 80 m/s². Force?", answer:{value:9.6,unit:"N"}},
+        {q:"9 kg accel 2.2 m/s². Force?", answer:{value:19.8,unit:"N"}}
+      ],
+      hard:[
+        {q:"A car mass 1200 kg accel 0.5 m/s². Force?", answer:{value:600,unit:"N"}},
+        {q:"A rocket 500 kg accel 10 m/s². Force?", answer:{value:5000,unit:"N"}},
+        {q:"An object 0.02 kg accel 1500 m/s². Force?", answer:{value:30,unit:"N"}},
+        {q:"A train car 20000 kg accel 0.05 m/s². Force?", answer:{value:1000,unit:"N"}},
+        {q:"A cyclist 80 kg accel 1.5 m/s². Force?", answer:{value:120,unit:"N"}},
+        {q:"Mass 0.01 kg accel 800 m/s². Force?", answer:{value:8,unit:"N"}},
+        {q:"Lorry 3000 kg accel -0.8 m/s². Force?", answer:{value:-2400,unit:"N"}},
+        {q:"Mass 250 kg accel 3.2 m/s². Force?", answer:{value:800,unit:"N"}},
+        {q:"Mass 45 kg accel 9.8 m/s². Force?", answer:{value:441,unit:"N"}},
+        {q:"Mass 12.5 kg accel 2.4 m/s². Force?", answer:{value:30,unit:"N"}}
+      ]
+    },
+    "Force = m(v - u) / t": {
+      easy:[
+        {q:"Mass 2 kg speed changes 0→10 m/s in 2 s. Force?", answer:{value:10,unit:"N"}},
+        {q:"0.5 kg changes 5→0 m/s in 1 s. Force?", answer:{value:-2.5,unit:"N"}},
+        {q:"3 kg 2→8 m/s in 3 s. Force?", answer:{value:6,unit:"N"}},
+        {q:"4 kg 0→4 m/s in 2 s. Force?", answer:{value:8,unit:"N"}},
+        {q:"1 kg 6→2 m/s in 2 s. Force?", answer:{value:-2,unit:"N"}},
+        {q:"5 kg 0→5 m/s in 5 s. Force?", answer:{value:5,unit:"N"}},
+        {q:"6 kg 3→9 m/s in 2 s. Force?", answer:{value:18,unit:"N"}},
+        {q:"0.2 kg 0→50 m/s in 1 s. Force?", answer:{value:10,unit:"N"}},
+        {q:"7 kg 4→2 m/s in 1 s. Force?", answer:{value:-14,unit:"N"}},
+        {q:"8 kg -2→2 m/s in 2 s. Force?", answer:{value:16,unit:"N"}}
+      ],
+      medium:[
+        {q:"Mass 12 kg from 0→3.5 m/s in 2 s. Force?", answer:{value:21,unit:"N"}},
+        {q:"0.05 kg 0→400 m/s in 0.02 s. Force?", answer:{value:1000,unit:"N"}},
+        {q:"6 kg 0→7 m/s in 2 s. Force?", answer:{value:21,unit:"N"}},
+        {q:"2.5 kg -4→6 m/s in 5 s. Force?", answer:{value:5,unit:"N"}},
+        {q:"0.02 kg 0→600 m/s in 0.01 s. Force?", answer:{value:1200,unit:"N"}},
+        {q:"80 kg 0→1.25 m/s in 0.2 s. Force?", answer:{value:500,unit:"N"}},
+        {q:"3.2 kg 0→2.5 m/s in 0.4 s. Force?", answer:{value:20,unit:"N"}},
+        {q:"15 kg 0→0.4 m/s in 0.1 s. Force?", answer:{value:60,unit:"N"}},
+        {q:"0.1 kg 0→30 m/s in 0.05 s. Force?", answer:{value:60,unit:"N"}},
+        {q:"9 kg 0→2 m/s in 0.5 s. Force?", answer:{value:36,unit:"N"}}
+      ],
+      hard:[
+        {q:"Car 1000 kg 0→20 m/s in 5 s. Force?", answer:{value:4000,unit:"N"}},
+        {q:"Bullet 0.01 kg 0→800 m/s in 0.002 s. Force?", answer:{value:4000,unit:"N"}},
+        {q:"Rocket 500 kg 0→150 m/s in 2 s. Force?", answer:{value:37500,unit:"N"}},
+        {q:"Boulder 2500 kg 0→0.5 m/s in 0.2 s. Force?", answer:{value:6250,unit:"N"}},
+        {q:"Skater 60 kg 0→10 m/s in 2 s. Force?", answer:{value:300,unit:"N"}},
+        {q:"Train car 20000 kg 0→2 m/s in 10 s. Force?", answer:{value:4000,unit:"N"}},
+        {q:"Mass 2.2 kg -9→9 m/s in 0.5 s. Force?", answer:{value:79.2,unit:"N"}},
+        {q:"Mass 0.3 kg 0→40 m/s in 0.01 s. Force?", answer:{value:1200,unit:"N"}},
+        {q:"Mass 75 kg 0→3.2 m/s in 0.2 s. Force?", answer:{value:1200,unit:"N"}},
+        {q:"Mass 120 kg 0→1 m/s in 0.05 s. Force?", answer:{value:2400,unit:"N"}}
+      ]
+    },
+    "Force = m v - m u (change in momentum / dt form)": {
+      easy:[
+        {q:"Mass 2 kg from u=0 to v=5 m/s in 1 s. Change in momentum-force approx?", answer:{value:10,unit:"kg·m/s"}},
+        {q:"0.5 kg from 4→0 m/s in 1 s. Change in momentum?", answer:{value:-2,unit:"kg·m/s"}},
+        {q:"3 kg from 2→8 m/s in 3 s. Change in momentum?", answer:{value:18,unit:"kg·m/s"}},
+        {q:"4 kg from 0→4 m/s in 2 s. Change in momentum?", answer:{value:16,unit:"kg·m/s"}},
+        {q:"1 kg from 6→2 m/s in 1 s. Change in momentum?", answer:{value:-4,unit:"kg·m/s"}},
+        {q:"5 kg 0→5 m/s in 5 s. Change in momentum?", answer:{value:25,unit:"kg·m/s"}},
+        {q:"6 kg 3→9 m/s. Change in momentum?", answer:{value:36,unit:"kg·m/s"}},
+        {q:"0.2 kg 0→50 m/s. Change in momentum?", answer:{value:10,unit:"kg·m/s"}},
+        {q:"7 kg 4→2 m/s. Change in momentum?", answer:{value:-14,unit:"kg·m/s"}},
+        {q:"8 kg -2→2 m/s. Change in momentum?", answer:{value:32,unit:"kg·m/s"}}
+      ],
+      medium:[
+        {q:"12 kg 0→3.5 m/s. Change in momentum?", answer:{value:42,unit:"kg·m/s"}},
+        {q:"0.05 kg 0→400 m/s. Change in momentum?", answer:{value:20,unit:"kg·m/s"}},
+        {q:"6 kg 0→7 m/s. Change in momentum?", answer:{value:42,unit:"kg·m/s"}},
+        {q:"2.5 kg -4→6 m/s. Change in momentum?", answer:{value:25,unit:"kg·m/s"}},
+        {q:"0.02 kg 0→600 m/s. Change in momentum?", answer:{value:12,unit:"kg·m/s"}},
+        {q:"80 kg 0→1.25 m/s. Change in momentum?", answer:{value:100,unit:"kg·m/s"}},
+        {q:"3.2 kg 0→2.5 m/s. Change in momentum?", answer:{value:8,unit:"kg·m/s"}},
+        {q:"15 kg 0→0.4 m/s. Change in momentum?", answer:{value:6,unit:"kg·m/s"}},
+        {q:"0.1 kg 0→30 m/s. Change in momentum?", answer:{value:3,unit:"kg·m/s"}},
+        {q:"9 kg 0→2 m/s. Change in momentum?", answer:{value:18,unit:"kg·m/s"}}
+      ],
+      hard:[
+        {q:"Car 1000 kg u 5 to v 25 m/s. Change in momentum?", answer:{value:20000,unit:"kg·m/s"}},
+        {q:"Bullet 0.02 kg u 0 to v 600 m/s. Change in momentum?", answer:{value:12,unit:"kg·m/s"}},
+        {q:"Rocket 300 kg u 100 to v 250 m/s. Change in momentum?", answer:{value:45000,unit:"kg·m/s"}},
+        {q:"Skate 45 kg 2→12 m/s. Change in momentum?", answer:{value:450,unit:"kg·m/s"}},
+        {q:"Mass 250 kg -3→3 m/s. Change in momentum?", answer:{value:1500,unit:"kg·m/s"}},
+        {q:"0.07 kg 0→300 m/s. Change in momentum?", answer:{value:21,unit:"kg·m/s"}},
+        {q:"600 kg 0→2.3 m/s. Change in momentum?", answer:{value:1380,unit:"kg·m/s"}},
+        {q:"4.5 kg 0→9 m/s. Change in momentum?", answer:{value:40.5,unit:"kg·m/s"}},
+        {q:"0.9 kg 0→8 m/s. Change in momentum?", answer:{value:7.2,unit:"kg·m/s"}},
+        {q:"18 kg 0→10 m/s. Change in momentum?", answer:{value:180,unit:"kg·m/s"}}
+      ]
+    }
+  }
+};
+
+/* ---------- UI + Logic (single file) ---------- */
+
+let currentChapter = null;
+let currentFormula = null;
+let currentDifficulty = null;
+let questionOrder = {};
+let questionIndex = {};
+let answeredCount = {};
+let totalAnswered = 0;
+
+// compute TOTAL dynamically
+let TOTAL = 0;
+Object.keys(data).forEach(ch=>{
+  Object.keys(data[ch]).forEach(f=>{
+    ['easy','medium','hard'].forEach(d=>{
+      TOTAL += data[ch][f][d].length;
+    });
+  });
+});
+
+function showChapter(ch){
+  currentChapter = ch;
+  const area = document.getElementById('chapterArea');
+  area.innerHTML = `<h2 style="margin:6px 0">${ch}</h2>`;
+  const grid = document.createElement('div'); grid.className='formula-grid';
+  Object.keys(data[ch]).forEach(formula=>{
+    const card = document.createElement('div'); card.className='formula-card';
+    const top = document.createElement('div'); top.className='formula-top';
+    const name = document.createElement('div'); name.className='formula-name'; name.innerText = formula;
+    const mascot = document.createElement('div'); mascot.className='tiny-mascot';
+    // tiny neutral mascots mapping
+    const mascMap = {
+      "Average Speed = Total Distance ÷ Total Time":"🚗",
+      "Speed = Distance ÷ Time":"🏃",
+      "Average Velocity = (Initial Velocity + Final Velocity) ÷ 2":"📏",
+      "Acceleration = (Final Velocity − Initial Velocity) ÷ Time":"⏱",
+      "v = u + at":"⚡",
+      "s = ut + 1/2 a t^2":"📐",
+      "v^2 = u^2 + 2as":"🔁",
+      "Final Momentum = Mass × Final Velocity (p = m v)":"🎯",
+      "Initial Momentum = Mass × Initial Velocity (p = m u)":"🎯",
+      "Force = Mass × Acceleration (F = m a)":"⚡",
+      "Force = m(v - u) / t":"⚖️",
+      "Force = m v - m u (change in momentum / dt form)":"🔩"
+    };
+    mascot.innerText = mascMap[formula] || "🔬";
+    top.appendChild(name); top.appendChild(mascot);
+    const math = document.createElement('div'); math.className='formula-math'; 
+    // short math preview
+    math.innerText = formula.split('(')[0].trim();
+    const actions = document.createElement('div'); actions.className='formula-actions';
+    const practice = document.createElement('button'); practice.className='practice-btn'; practice.innerText='Practice';
+    practice.onclick = ()=>openPopup(ch,formula);
+    actions.appendChild(practice);
+    card.appendChild(top); card.appendChild(math); card.appendChild(actions);
+    grid.appendChild(card);
+  });
+  area.appendChild(grid);
+  document.getElementById('overallProgress').style.display='block';
+  updateOverallProgress();
+}
+
+// popup handling
+function openPopup(ch,formula){
+  currentChapter = ch; currentFormula = formula;
+  document.getElementById('popupTitle').innerText = `${formula}`;
+  document.getElementById('popupSubtitle').innerText = `${ch} — choose difficulty (10 problems each).`;
+  ['easy','medium','hard'].forEach(d=>{
+    const key = keyFor(ch,formula,d);
+    if(!questionOrder[key]) questionOrder[key] = shuffledIndices(data[ch][formula][d].length);
+    if(questionIndex[key]===undefined) questionIndex[key] = 0;
+    if(answeredCount[key]===undefined) answeredCount[key] = 0;
+  });
+  document.getElementById('status').innerText = '';
+  document.getElementById('questionsArea').innerHTML = '';
+  document.getElementById('overlay').style.display = 'flex';
+  updateOverallProgress();
+}
+function closePopup(){
+  document.getElementById('overlay').style.display = 'none';
+  currentFormula = null; currentDifficulty = null; document.getElementById('questionsArea').innerHTML = '';
+}
+function keyFor(ch,formula,diff){ return `${ch}:::${formula}:::${diff}`; }
+function shuffledIndices(n){ const arr=Array.from({length:n},(_,i)=>i); for(let i=n-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
+
+function startDifficulty(diff){
+  if(!currentFormula) return;
+  currentDifficulty = diff;
+  const key = keyFor(currentChapter,currentFormula,diff);
+  if(!questionOrder[key]) questionOrder[key] = shuffledIndices(data[currentChapter][currentFormula][diff].length);
+  if(questionIndex[key]===undefined) questionIndex[key] = 0;
+  showCurrentQuestion();
+}
+
+function showCurrentQuestion(){
+  const area = document.getElementById('questionsArea'); area.innerHTML = '';
+  const key = keyFor(currentChapter,currentFormula,currentDifficulty);
+  const idx = questionIndex[key];
+  const qList = data[currentChapter][currentFormula][currentDifficulty];
+  if(idx >= qList.length){
+    area.innerHTML = `<div class="qcard"><h3>All done ✅</h3><div class="small">You finished this difficulty for the formula.</div></div>`;
+    return;
+  }
+  const qObj = qList[questionOrder[key][idx]];
+  const qcard = document.createElement('div'); qcard.className='qcard';
+  const qh = document.createElement('h3'); qh.innerText = `Q ${idx+1} of ${qList.length} — ${currentDifficulty.toUpperCase()}`;
+  const qp = document.createElement('div'); qp.className='qmeta'; qp.innerText = qObj.q;
+  qcard.appendChild(qh); qcard.appendChild(qp);
+  const inputRow = document.createElement('div'); inputRow.className='input-row';
+  const inp = document.createElement('input'); inp.className='answer'; inp.placeholder='e.g. 10 N'; inp.id='userAnswer';
+  const checkBtn = document.createElement('button'); checkBtn.className='check'; checkBtn.innerText='Check';
+  checkBtn.onclick = ()=>checkAnswer(qObj.answer.value,qObj.answer.unit);
+  inputRow.appendChild(inp); inputRow.appendChild(checkBtn);
+  qcard.appendChild(inputRow);
+  const res = document.createElement('div'); res.id='resultBox'; res.className='result';
+  qcard.appendChild(res);
+  const hint = document.createElement('div'); hint.className='hint'; hint.id='hintBox';
+  qcard.appendChild(hint);
+  const mini = document.createElement('div'); mini.className='small'; mini.style.marginTop='8px';
+  mini.innerText = `Progress (this formula/diff): ${answeredCount[key] || 0} / ${qList.length} | Total done: ${totalAnswered} / ${TOTAL}`;
+  qcard.appendChild(mini);
+  area.appendChild(qcard);
+  setTimeout(()=>document.getElementById('userAnswer').focus(),80);
+}
+
+/* Unit alias map */
+const unitAliases = {
+  'm/s':['m/s','m s^-1','mps','meter/second','metre per second','metres per second','m/s^1'],
+  'km/h':['km/h','km h^-1','kmph','kph','kilometres per hour'],
+  'm':['m','metre','metres','meter','meters'],
+  's':['s','sec','second','seconds'],
+  'm/s^2':['m/s^2','m s^-2','m/s²','mps2','m per s^2'],
+  'N':['n','newton','newtons'],
+  'kg·m/s':['kg·m/s','kg m/s','kg*m/s','kgm/s','kg·m s^-1'],
+  'kg':['kg','kilogram','kilograms'],
+  'h':['h','hr','hour','hours']
+};
+function normalizeUnit(u){
+  if(!u) return '';
+  let uu = u.trim().toLowerCase();
+  uu = uu.replace(/\u00B7/g,'').replace(/\./g,'').replace(/\s+/g,' ').trim();
+  for(const canon in unitAliases){
+    for(const alt of unitAliases[canon]){
+      if(uu === alt) return canon;
+    }
+  }
+  // try small conversions like km/h vs kmph
+  if(uu==='mps') return 'm/s';
+  return uu;
+}
+
+function checkAnswer(correctValue, correctUnit){
+  const user = document.getElementById('userAnswer').value.trim();
+  const res = document.getElementById('resultBox');
+  const hint = document.getElementById('hintBox');
+  res.innerText=''; hint.innerText='';
+  if(!user){ res.innerText='❌ Type number + unit, e.g. 10 N'; return; }
+  const match = user.match(/^([+\-]?\d*\.?\d+(?:e[+\-]?\d+)?)\s*(.+)$/i);
+  if(!match){ res.innerText='❌ Enter a number followed by unit, e.g. 25 m/s'; return; }
+  const value = parseFloat(match[1]);
+  let unitRaw = match[2].trim();
+  const userUnit = normalizeUnit(unitRaw);
+  const correctUnitNorm = normalizeUnit(correctUnit);
+  const tol = Math.max(0.02, Math.abs(correctValue)*0.005);
+  const isValueCorrect = Math.abs(value - correctValue) <= tol;
+  const isUnitCorrect = (userUnit === correctUnitNorm);
+  if(isValueCorrect && isUnitCorrect){
+    res.innerText = '✅ Correct — good job.';
+    markAnswered();
+  } else if(isValueCorrect && !isUnitCorrect){
+    res.innerText = '⚠️ Number ok but unit mismatch.';
+    hint.innerText = `Expected unit like: ${correctUnit}.`;
+  } else if(!isValueCorrect && isUnitCorrect){
+    res.innerText = '❌ Unit ok but value seems off.';
+    hint.innerText = `Expected about ${correctValue} ${correctUnit}.`;
+  } else {
+    res.innerText = '❌ Wrong value and/or unit.';
+    hint.innerText = `Expected approx ${correctValue} ${correctUnit}.`;
+  }
+}
+
+function markAnswered(){
+  const key = keyFor(currentChapter,currentFormula,currentDifficulty);
+  answeredCount[key] = (answeredCount[key] || 0) + 1;
+  totalAnswered++;
+  questionIndex[key] = (questionIndex[key] || 0) + 1;
+  updateOverallProgress();
+  const qList = data[currentChapter][currentFormula][currentDifficulty];
+  if(questionIndex[key] >= qList.length){
+    document.getElementById('questionsArea').innerHTML = `<div class="qcard"><h3>All done for this difficulty ✅</h3><div class="small">Choose another difficulty or close.</div></div>`;
+  } else {
+    setTimeout(()=>showCurrentQuestion(),700);
+  }
+  if(totalAnswered >= TOTAL){
+    setTimeout(()=>{ document.getElementById('overlay').style.display='none'; document.querySelector('main')?.remove(); document.getElementById('chapterArea').style.display='none'; document.getElementById('overallProgress').style.display='none'; document.getElementById('thanksScreen').style.display='flex'; }, 700);
+  }
+}
+
+function updateOverallProgress(){
+  const bar = document.getElementById('overallProgress');
+  bar.style.display='block';
+  const percent = Math.round((totalAnswered / TOTAL) * 100);
+  bar.innerText = `Total progress: ${totalAnswered} / ${TOTAL} completed — ${percent}%`;
+}
+
+// init orders
+(function init(){
+  Object.keys(data).forEach(ch=>{
+    Object.keys(data[ch]).forEach(f=>{
+      ['easy','medium','hard'].forEach(d=>{
+        const k = keyFor(ch,f,d);
+        questionOrder[k] = shuffledIndices(data[ch][f][d].length);
+        questionIndex[k] = 0;
+        answeredCount[k] = 0;
+      });
+    });
+  });
+  updateOverallProgress();
+  // show home (no main area element used so show nothing until chapter clicked)
+})();
+</script>
+</body>
+</html>
